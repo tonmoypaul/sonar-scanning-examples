@@ -5,6 +5,7 @@ namespace SomeConsoleApplication
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("=== SomeConsoleApplication ===");
             var iAmTrue = true;
             if (iAmTrue)
             {
