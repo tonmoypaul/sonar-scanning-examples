@@ -1,0 +1,56 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**\SomeConsoleApplication.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+  displayName: 'Use NuGet'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: SonarCloudPrepare@1
+  displayName: 'Prepare analysis configuration'
+  inputs:
+    SonarCloud: 'SC'
+    organization: 'tonmoy'
+    scannerMode: 'MSBuild'
+    projectKey: 'tonmoypaul_sonar-scanning-examples'
+    projectName: 'Sample .NET Framework project with Azure DevOps'
+
+- task: VSBuild@1
+  displayName: 'Build solution'
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  displayName: 'VsTest - testAssemblies'
+  inputs:
+    testAssemblyVer2: |
+     **\$(BuildConfiguration)\*Test*.dll
+     !**\obj\**
+    codeCoverageEnabled: true
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: SonarCloudAnalyze@1
+  displayName: 'Run SonarCloud analysis'
+
+- task: SonarCloudPublish@1
+  displayName: 'Publish results on build summary'
